@@ -1,0 +1,71 @@
+pragma solidity ^0.4.24;
+import "./Owned.sol";
+import "./DataBase.sol";
+import "./Batch.sol";
+
+contract Manufacturer is Owned {
+    address public DATABASE_CONTRACT;
+    struct Manufactur
+    {
+        string physicalAddress;
+        string companyName;
+        string firstName;
+        string lastName;
+        string email;
+        bool isValue;
+        
+        address[] batches;
+    }
+    
+    mapping (address => Manufactur) manufacturers;
+    address[] public manufacturerAccts;
+
+    constructor(address _DATABASE_CONTRACT) public
+    {
+        DATABASE_CONTRACT = _DATABASE_CONTRACT;
+
+    }
+    function addManufacturer(address _address,  string _physicalAddress, string _companyName, string _firstName, string _lastName, string _email) public
+    {
+        require(owner==msg.sender);
+        require(manufacturers[_address].isValue == false);
+
+        
+        Manufactur storage manufacturer = manufacturers[_address];
+        manufacturer.physicalAddress = _physicalAddress;
+        manufacturer.companyName = _companyName;
+        manufacturer.firstName = _firstName;
+        manufacturer.lastName = _lastName;
+        manufacturer.email = _email;
+        
+        manufacturerAccts.push(_address);
+    }
+    function getManufacturers() view public returns(address[]) {
+        return manufacturerAccts;
+    }
+    function getManufacturer(address _address) view public returns (string physicalAddress, string companyName, string firstName, string lastName, string email) {
+        return (manufacturers[_address].physicalAddress, manufacturers[_address].companyName, manufacturers[_address].firstName, manufacturers[_address].lastName, manufacturers[_address].email);
+    }
+    function countManufacturers() view public returns (uint count) {
+        return manufacturerAccts.length;
+    }
+    
+    function createBatch(address _manufacturerAcct, address _product, uint256 _numberOfParty, string _details,  string _dateCreated, uint256 _size) public returns(address addressBatch) 
+    {
+        require(_size>1);
+        //TODO чи правильно???? -> перевірка чи _product !=null
+        require(_product!=address(0));
+        require(manufacturers[_manufacturerAcct].isValue == true);
+        //TODO чи правильно???? ->  parent = address(0) - занулення???
+        address batch = new Batch(DATABASE_CONTRACT, this, _product, address(0), _numberOfParty, _details,  _dateCreated, _size);
+        manufacturers[_manufacturerAcct].batches.push(batch);
+        return batch;
+    }
+    //TODO
+    //addProducts to batch
+    //saleBatch
+    //show available batches
+    //show saled batches
+    //show details concrete batch
+    //...
+}

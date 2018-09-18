@@ -1,0 +1,19 @@
+pragma solidity ^0.4.24;
+
+contract ConcreteProduct 
+{
+    address DATABASE_CONTRACT;
+
+    address lastBatch; 
+    address product;
+    
+    uint256 id;
+    uint256  QR;
+
+    constructor(address _DATABASE_CONTRACT,address _lastBatch,address _product) public
+    {
+        DATABASE_CONTRACT = _DATABASE_CONTRACT;
+        lastBatch = _lastBatch;
+        product = _product;
+    }
+}

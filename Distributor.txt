@@ -1,0 +1,92 @@
+pragma solidity ^0.4.24;
+import "./Owned.sol";
+import "./DataBase.sol";
+
+contract Distributor is Owned {
+    address public DATABASE_CONTRACT;
+    struct Distr
+    {
+        string physicalAddress;
+        string companyName;
+        string firstName;
+        string lastName;
+        string email;
+        bool isValue;
+        
+        //Batch[] availableBatches;
+        //Batch[] sendedBatches;
+    }
+    
+    mapping (address => Distr) distributors;
+    address[] public distrAccts;
+
+    constructor(address _DATABASE_CONTRACT) public
+    {
+        DATABASE_CONTRACT = _DATABASE_CONTRACT;
+    }
+    function addDistributor(address _address,  string _physicalAddress, string _companyName, string _firstName, string _lastName, string _email) public
+    {
+        require(owner==msg.sender);
+        require(distributors[_address].isValue == false);
+
+        Distr storage distr = distributors[_address];
+        distr.physicalAddress = _physicalAddress;
+        distr.companyName = _companyName;
+        distr.firstName = _firstName;
+        distr.lastName = _lastName;
+        distr.email = _email;
+        
+        distrAccts.push(_address);
+    }
+    function getDistributors() view public returns(address[]) {
+        return distrAccts;
+    }
+    function getDistributor(address _address) view public returns (string physicalAddress, string companyName, string firstName, string lastName, string email) {
+        return (distributors[_address].physicalAddress, distributors[_address].companyName, distributors[_address].firstName, distributors[_address].lastName, distributors[_address].email);
+    }
+    function countDistributors() view public returns (uint count) {
+        return distrAccts.length;
+    }
+    
+    //-------------------------
+    //function addNewBatch(address _address, string _name, string _creatingDate, uint amount) public 
+    //{
+    // підкл до БД із під неї викл. метод addNewBatch
+    //    ...
+    //
+    //}
+    //function sendBatch(address _address, address _to, string _name, string _creatingDate, uint amount) public 
+    //{
+    //    ...
+    // реалізувати через event??? для того щоб не навязувати свій товар, а попросити когось прийняти товар.
+    // чи потрібно таке робити, і шо буде якшо він відмовиться прийняти товар???
+    // типу створити event StartSend і потім з тої дреси відправити EndSend і тут обробити???
+    // але складність реалізації виросте на порядок (чи таке перевіряти на ansemle???)
+    //}
+    //function getBatch(address _address, address _from, string _name, string _creatingDate, uint amount) public 
+    //{
+    //    ...
+    // прийняти товар і з тої дреси відправити EndSend???
+    //}
+    
+    //function getAllAvailableBatches() view public returns(??????) {
+    //    return ??????;
+    //}
+    //function getAvailableBatch(?????) view public returns (??????) {
+    //    return (??????);
+    //}
+    //function countAvailableBatches() view public returns (uint) {
+    //    return availableBatches.length;
+    //}
+    
+    //function getAllSendedBatches() view public returns(??????) {
+    //    return ??????;
+    //}
+    //function getSendedBatch(?????) view public returns (??????) {
+    //    return (??????);
+    //}
+    //function countSendedBatches() view public returns (uint) {
+    //    return availableBatches.length;
+    //}
+    
+}

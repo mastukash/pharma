@@ -1,0 +1,39 @@
+pragma solidity ^0.4.24;
+import "./DataBase.sol";
+import "./ConcreteProduct.sol";
+
+contract Batch{
+    address DATABASE_CONTRACT;
+    address owner; //власник - це контракт який його створив
+    
+    address[] concreteProducts;
+    address product;
+    
+    address parentBatch;
+    address[] childBatches;
+    
+    uint256 numberOfParty;
+    string details;
+    string dateCreated;
+    uint256 size; // sizeAvailable products
+    uint256 capacity; //maxSize products
+
+    constructor(address _DATABASE_CONTRACT, address _owner, address _product, address _parentBatch,  uint256 _numberOfParty, string _details,  string _dateCreated, uint256 _size) public
+    {
+        DATABASE_CONTRACT = _DATABASE_CONTRACT;
+        owner = _owner;
+        parentBatch = _parentBatch;
+        product = _product;
+        
+        numberOfParty = _numberOfParty;
+        details = _details;
+        dateCreated = _dateCreated;
+        size = capacity = _size;
+        
+        //а як кожному продукту передати його id i QR??? і чи вони в кожного продукта є унікальні???
+        //чи можливо id - це буде id загального продукта, а QR - уже номер по порядку конкретного продукта в партії 
+        // + задати ціну кожному продукту і всі решта характеристики
+        for(uint256 i=0;i<size;i++)
+            concreteProducts.push(new ConcreteProduct(DATABASE_CONTRACT, this, product));
+    }
+}
