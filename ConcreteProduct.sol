@@ -5,6 +5,7 @@ contract ConcreteProduct
     address DATABASE_CONTRACT;
 
     address lastBatch; 
+    address saleAddress;
     
     bytes32 id;
     bytes32 QR;

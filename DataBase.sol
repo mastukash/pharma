@@ -3,12 +3,18 @@ import "./Owned.sol";
 import "./Retailer.sol";
 import "./Manufacturer.sol";
 import "./Distributor.sol";
+import "./Batch.sol";
+import "./Product.sol";
+import "./ConcreteProduct.sol";
 
 contract DataBase is Owned {
 
     address retailer;
     address manufacturer;
     address distributor;
+
+    address[] concreteProducts;
+    mapping(address=>bool) concreteProductsAccts;
     
     function createDistributor() onlyOwner public returns  (address distributorAddress) 
     {
@@ -41,5 +47,42 @@ contract DataBase is Owned {
     function getRetailer()view public returns (address retailerAddress)
     {
         return retailer;
+    }
+
+    function saleFromManToDistr()public
+    {
+
+    }
+    function saleFromDistrToDistr()public
+    {
+
+    }
+    function saleFromDistrToRet()public
+    {
+
+    }
+    function saleFromRetToRet()public
+    {
+
+    }
+    function saleFromRetToUser()public
+    {
+
+    }
+    function findHistoryProductById(bytes32 _id)public
+    {
+
+    }
+    function findHistoryProductByQR(bytes32 _QR)public
+    {
+
+    }
+    //коли де небудь створюється продукт, то записувати про нього (address) інформацію в БД
+    function saveProductInfo(address _concreteProduct) public
+    {
+        require(concreteProductsAccts[_concreteProduct] == false);
+        concreteProducts.push(_concreteProduct);
+        concreteProductsAccts[_concreteProduct] = true;
+
     }
 }
