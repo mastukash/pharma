@@ -6,17 +6,17 @@ contract Batch{
     address DATABASE_CONTRACT;
     address owner; //власник - це контракт який його створив
     
-    address[] public concreteProducts;
-    address public product;
+    address[] concreteProducts;
+    address product;
     
-    address public parentBatch;
-    address[] public childBatches;
+    address parentBatch;
+    address[] childBatches;
     
-    uint256 public numberOfParty;
-    string public details;
-    string public dateCreated;
-    int public size; // sizeAvailable products
-    int public capacity; //maxSize products
+    uint256 numberOfParty;
+    string  details;
+    string dateCreated;
+    int size; // sizeAvailable products
+    int capacity; //maxSize products
 
     constructor(address _DATABASE_CONTRACT, address _owner, address _product, address _parentBatch,  uint256 _numberOfParty, string _details,  string _dateCreated, int _size, uint256[] _ids, uint256[] _qrs) public
     {
@@ -31,7 +31,7 @@ contract Batch{
         size = capacity = _size;
         
         // + задати ціну кожному продукту і всі решта характеристики
-        for(uint256 i=0;i<size;i++)
+        for(var i=0;i<size;i++)
             concreteProducts.push(new ConcreteProduct(DATABASE_CONTRACT, this, product, _ids[i], _qrs[i]));
     }
     function getDetails() view public returns(address owner, address parentBatch, address[] childBatches, uint256 numberOfParty, string details, address[] concreteProducts)
@@ -42,12 +42,24 @@ contract Batch{
     {
         return parentBatch;
     }
-    function getChildBatches() view public returns (address[] parentBatchAddress)
-    {
-        return childBatches;
-    }
     function setSize(int _size) public
     {
         size = size-_size;
+    }
+    function getSize() view public returns(int size)
+    {
+        return size;
+    }
+    function getProduct() view public returns(address product)
+    {
+        return product;
+    }
+    function getDet() public returns(string details)
+    {
+        return details;
+    }
+    function getChildBatches()view public returns(address[] childBatches)
+    {
+        return childBatches;
     }
 }

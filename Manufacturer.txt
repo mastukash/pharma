@@ -80,14 +80,15 @@ contract Manufacturer is Owned {
         require(manufacturers[_toManufacturer].isValue == true);
         
         Batch fromBatch = Batch(_fromBatch);
-        require(sha3(fromBatch.size) >= sha3(_amount));
-        fromBatch.setSize(fromBatch.size - _amount);
+        require(fromBatch.getSize() >= _amount);
+        fromBatch.setSize(fromBatch.getSize() - _amount);
         //чи потрібно добавляти нові конкретні продукти в нову партію із ід і кодами???
         //чи вирізпти продукти з отї партії звідки перекидаємо???
         
-        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.product, _fromBatch, newNumberOfParty, fromBatch.details,  newDateCreated, _amount, new address[](0), new address[](0));
+        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDet(),  newDateCreated, _amount, new uint256[](0), new uint256[](0));
         manufacturers[_toManufacturer].batches.push(newBatch);
-        fromBatch.childBatches.push(newBatch);
+        fromBatch.getChildBatches();
+        tmp.push(newBatch);
         return newBatch;
     }
     //TODO
