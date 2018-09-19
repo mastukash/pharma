@@ -15,6 +15,8 @@ contract Manufacturer is Owned {
         bool isValue;
         
         address[] batches;
+        //для швидкого пошуку партій
+        mapping (address => bool) batchesAccs;
     }
     
     mapping (address => Manufactur) manufacturers;
@@ -43,26 +45,52 @@ contract Manufacturer is Owned {
     function getManufacturers() view public returns(address[]) {
         return manufacturerAccts;
     }
-    function getManufacturer(address _address) view public returns (string physicalAddress, string companyName, string firstName, string lastName, string email) {
+    function getManufacturerDetails(address _address) view public returns (string physicalAddress, string companyName, string firstName, string lastName, string email) {
         return (manufacturers[_address].physicalAddress, manufacturers[_address].companyName, manufacturers[_address].firstName, manufacturers[_address].lastName, manufacturers[_address].email);
     }
     function countManufacturers() view public returns (uint count) {
         return manufacturerAccts.length;
     }
     
-    function createBatch(address _manufacturerAcct, address _product, uint256 _numberOfParty, string _details,  string _dateCreated, uint256 _size) public returns(address addressBatch) 
+    function createBatch(address _manufacturerAcct, address _product, uint256 _numberOfParty, string _details,  string _dateCreated, int _size,uint256[] _ids, uint256[]_qrs) public returns(address addressBatch) 
     {
         require(_size>1);
         //TODO чи правильно???? -> перевірка чи _product !=null
         require(_product!=address(0));
         require(manufacturers[_manufacturerAcct].isValue == true);
         //TODO чи правильно???? ->  parent = address(0) - занулення???
-        address batch = new Batch(DATABASE_CONTRACT, this, _product, address(0), _numberOfParty, _details,  _dateCreated, _size);
+        address batch = new Batch(DATABASE_CONTRACT, this, _product, address(0), _numberOfParty, _details,  _dateCreated, _size, _ids, _qrs);
         manufacturers[_manufacturerAcct].batches.push(batch);
+        bool batchAcc = manufacturers[_manufacturerAcct].batchesAccs[batch];
+        batchAcc = true;
         return batch;
     }
+    
+    function getManufacturerBatches(address _manufacturer) view public returns (address[] batches) 
+    {
+        require(manufacturers[_manufacturer].isValue == true);
+        return manufacturers[_manufacturer].batches;
+    }
+    
+    function saleBatchToManufacturer(address _fromManufacturer, address _toManufacturer, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    {
+        require(_amount>1);
+        require(manufacturers[_fromManufacturer].isValue == true);
+        require(manufacturers[_fromManufacturer].batchesAccs[_fromBatch] == true);
+        require(manufacturers[_toManufacturer].isValue == true);
+        
+        Batch fromBatch = Batch(_fromBatch);
+        require(sha3(fromBatch.size) >= sha3(_amount));
+        fromBatch.setSize(fromBatch.size - _amount);
+        //чи потрібно добавляти нові конкретні продукти в нову партію із ід і кодами???
+        //чи вирізпти продукти з отї партії звідки перекидаємо???
+        
+        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.product, _fromBatch, newNumberOfParty, fromBatch.details,  newDateCreated, _amount, new address[](0), new address[](0));
+        manufacturers[_toManufacturer].batches.push(newBatch);
+        fromBatch.childBatches.push(newBatch);
+        return newBatch;
+    }
     //TODO
-    //addProducts to batch
     //saleBatch
     //show available batches
     //show saled batches
