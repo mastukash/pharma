@@ -13,8 +13,8 @@ contract Distributor is Owned {
         string email;
         bool isValue;
         
-        //Batch[] availableBatches;
-        //Batch[] sendedBatches;
+        address[] batches;
+        mapping (address => bool) batchesAccs;
     }
     
     mapping (address => Distr) distributors;
@@ -48,45 +48,53 @@ contract Distributor is Owned {
         return distrAccts.length;
     }
     
-    //-------------------------
-    //function addNewBatch(address _address, string _name, string _creatingDate, uint amount) public 
-    //{
-    // підкл до БД із під неї викл. метод addNewBatch
-    //    ...
-    //
-    //}
-    //function sendBatch(address _address, address _to, string _name, string _creatingDate, uint amount) public 
-    //{
-    //    ...
-    // реалізувати через event??? для того щоб не навязувати свій товар, а попросити когось прийняти товар.
-    // чи потрібно таке робити, і шо буде якшо він відмовиться прийняти товар???
-    // типу створити event StartSend і потім з тої дреси відправити EndSend і тут обробити???
-    // але складність реалізації виросте на порядок (чи таке перевіряти на ansemle???)
-    //}
-    //function getBatch(address _address, address _from, string _name, string _creatingDate, uint amount) public 
-    //{
-    //    ...
-    // прийняти товар і з тої дреси відправити EndSend???
-    //}
+    function getDistrubutorBatches(address _distributor) view public returns (address[] batches) 
+    {
+        require(distributors[_distributor].isValue == true);
+        return distributors[_distributor].batches;
+    }
     
-    //function getAllAvailableBatches() view public returns(??????) {
-    //    return ??????;
-    //}
-    //function getAvailableBatch(?????) view public returns (??????) {
-    //    return (??????);
-    //}
-    //function countAvailableBatches() view public returns (uint) {
-    //    return availableBatches.length;
-    //}
+    function checkAddress(address _to)
+    {
+        require(distributors[_to].isValue == true);
+    }
     
-    //function getAllSendedBatches() view public returns(??????) {
-    //    return ??????;
-    //}
-    //function getSendedBatch(?????) view public returns (??????) {
-    //    return (??????);
-    //}
-    //function countSendedBatches() view public returns (uint) {
-    //    return availableBatches.length;
-    //}
+    function addBatch(address _distributor , address _batchAddress) public
+    {
+        distributors[_distributor].batches.push(_batchAddress);
+        distributors[_distributor].batchesAccs[_batchAddress]= true;
+        bool batchAcc = distributors[_distributor].batchesAccs[_batchAddress];
+        batchAcc = true;
+    }
     
+    function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    {
+        saleBatchToDistributorRequired(_from,  _to, _fromBatch, _amount);
+
+        Batch fromBatch = Batch(_fromBatch);
+        require(fromBatch.getSize() >= _amount);
+        int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
+        int endIndex = startIdnex+ _amount;
+        address[] tmpConcreteProducts;
+        address[] memory productsFromBatch = fromBatch.getConcreteProducts();
+        for(int i = startIdnex;i<endIndex;i++)
+        {
+            tmpConcreteProducts.push(productsFromBatch[(uint256)(i)]);
+        }
+        
+        fromBatch.setSize(fromBatch.getSize() - _amount);
+
+        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        manufacturers[_to].batches.push(newBatch);
+        fromBatch.addChildBatch(newBatch);
+        return newBatch;
+    }
+    
+    function saleBatchToDistributorRequired(address _from, address _to,address _fromBatch,int _amount)
+    {
+        require(_amount>0);
+        require(distributors[_from].isValue == true);
+        require(distributors[_from].batchesAccs[_fromBatch] == true);
+        require(distributors[_to].isValue == true);
+    }
 }

@@ -1,7 +1,9 @@
 pragma solidity ^0.4.24;
 import "./Owned.sol";
 import "./DataBase.sol";
+import "./Distributor.sol";
 import "./Batch.sol";
+import "./ConcreteProduct.sol";
 
 contract Manufacturer is Owned {
     address public DATABASE_CONTRACT;
@@ -42,24 +44,30 @@ contract Manufacturer is Owned {
         
         manufacturerAccts.push(_address);
     }
-    function getManufacturers() view public returns(address[]) {
+    function getManufacturers() view public returns(address[]_manufacturerAccts) {
         return manufacturerAccts;
     }
-    function getManufacturerDetails(address _address) view public returns (string physicalAddress, string companyName, string firstName, string lastName, string email) {
+    function getManufacturerDetails(address _address) view public returns (string _physicalAddress, string _companyName, string _firstName, string _lastName, string _email) {
         return (manufacturers[_address].physicalAddress, manufacturers[_address].companyName, manufacturers[_address].firstName, manufacturers[_address].lastName, manufacturers[_address].email);
     }
     function countManufacturers() view public returns (uint count) {
         return manufacturerAccts.length;
     }
     
-    function createBatch(address _manufacturerAcct, address _product, uint256 _numberOfParty, string _details,  string _dateCreated, int _size,uint256[] _ids, uint256[]_qrs) public returns(address addressBatch) 
+    function createBatch(address _manufacturerAcct, address _product, uint256 _numberOfParty, string _details,  string _dateCreated, int _size, bytes32[] _ids, bytes32[]_qrs) public returns(address _addressBatch) 
     {
         require(_size>1);
         //TODO чи правильно???? -> перевірка чи _product !=null
         require(_product!=address(0));
         require(manufacturers[_manufacturerAcct].isValue == true);
-        //TODO чи правильно???? ->  parent = address(0) - занулення???
-        address batch = new Batch(DATABASE_CONTRACT, this, _product, address(0), _numberOfParty, _details,  _dateCreated, _size, _ids, _qrs);
+        
+        address[] _concreteProducts;
+        for(var i=0;i<_size;i++)
+        {
+            _concreteProducts.push(new ConcreteProduct(DATABASE_CONTRACT, this, _ids[i], _qrs[i]));
+        }
+        
+        address batch = new Batch(DATABASE_CONTRACT, _manufacturerAcct, _product, address(0), _numberOfParty, _details,  _dateCreated, _size, _concreteProducts);
         manufacturers[_manufacturerAcct].batches.push(batch);
         bool batchAcc = manufacturers[_manufacturerAcct].batchesAccs[batch];
         batchAcc = true;
@@ -72,24 +80,38 @@ contract Manufacturer is Owned {
         return manufacturers[_manufacturer].batches;
     }
     
-    function saleBatchToManufacturer(address _fromManufacturer, address _toManufacturer, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
     {
-        require(_amount>1);
-        require(manufacturers[_fromManufacturer].isValue == true);
-        require(manufacturers[_fromManufacturer].batchesAccs[_fromBatch] == true);
-        require(manufacturers[_toManufacturer].isValue == true);
+        DataBase database = DataBase(DATABASE_CONTRACT);
+        Distributor distributor = Distributor(database.getDistributor());
         
+        saleBatchToDistributorRequired(_from, distributor,  _to, _fromBatch, _amount);
+        _distributor.checkAddress(_to);
+
         Batch fromBatch = Batch(_fromBatch);
         require(fromBatch.getSize() >= _amount);
-        fromBatch.setSize(fromBatch.getSize() - _amount);
-        //чи потрібно добавляти нові конкретні продукти в нову партію із ід і кодами???
-        //чи вирізпти продукти з отї партії звідки перекидаємо???
+        int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
+        int endIndex = startIdnex+ _amount;
+        address[] tmpConcreteProducts;
+        address[] memory productsFromBatch = fromBatch.getConcreteProducts();
+        for(int i = startIdnex;i<endIndex;i++)
+        {
+            tmpConcreteProducts.push(productsFromBatch[(uint256)(i)]);
+        }
         
-        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDet(),  newDateCreated, _amount, new uint256[](0), new uint256[](0));
-        manufacturers[_toManufacturer].batches.push(newBatch);
-        fromBatch.getChildBatches();
-        tmp.push(newBatch);
+        fromBatch.setSize(fromBatch.getSize() - _amount);
+
+        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        distributor.addBatch(_to,newBatch);
+        fromBatch.addChildBatch(newBatch);
         return newBatch;
+    }
+    
+    function saleBatchToDistributorRequired(address _from,address _fromBatch,int _amount)
+    {
+        require(_amount>0);
+        require(manufacturers[_from].isValue == true);
+        require(manufacturers[_from].batchesAccs[_fromBatch] == true);
     }
     //TODO
     //saleBatch
