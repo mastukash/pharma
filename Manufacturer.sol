@@ -85,9 +85,23 @@ contract Manufacturer is Owned {
         DataBase database = DataBase(DATABASE_CONTRACT);
         Distributor distributor = Distributor(database.getDistributor());
         
-        saleBatchToDistributorRequired(_from, distributor,  _to, _fromBatch, _amount);
-        _distributor.checkAddress(_to);
+        saleBatchToDistributorRequired(_from, _fromBatch, _amount);
+        distributor.checkAddress(_to);
 
+        address newBatch = saleBatch(_to,_fromBatch,newNumberOfParty,newDateCreated,_amount);
+        distributor.addBatch(_to, newBatch);
+        
+        return newBatch;
+    }
+    
+    function saleBatchToDistributorRequired(address _from,address _fromBatch,int _amount)
+    {
+        require(_amount>0);
+        require(manufacturers[_from].isValue == true);
+        require(manufacturers[_from].batchesAccs[_fromBatch] == true);
+    }
+    function saleBatch(address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) returns (address _newBatch)
+    {
         Batch fromBatch = Batch(_fromBatch);
         require(fromBatch.getSize() >= _amount);
         int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
@@ -102,17 +116,11 @@ contract Manufacturer is Owned {
         fromBatch.setSize(fromBatch.getSize() - _amount);
 
         address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
-        distributor.addBatch(_to,newBatch);
         fromBatch.addChildBatch(newBatch);
+        
         return newBatch;
     }
     
-    function saleBatchToDistributorRequired(address _from,address _fromBatch,int _amount)
-    {
-        require(_amount>0);
-        require(manufacturers[_from].isValue == true);
-        require(manufacturers[_from].batchesAccs[_fromBatch] == true);
-    }
     //TODO
     //saleBatch
     //show available batches

@@ -13,8 +13,8 @@ contract Retailer is Owned {
         string email;
         bool isValue;
         
-        //Batch[] availableBatches;
-        //Batch[] sendedBatches;
+        address[] batches;
+        mapping (address => bool) batchesAccs;
     }
     
     mapping (address => Retail) retailers;
@@ -48,5 +48,25 @@ contract Retailer is Owned {
     }
     function countRetailers() view public returns (uint count) {
         return retailerAccts.length;
+    }
+    
+    
+    function getRetailerBatches(address _retailer) view public returns (address[] batches) 
+    {
+        require(retailers[_retailer].isValue == true);
+        return retailers[_retailer].batches;
+    }
+    
+    function checkAddress(address _to)
+    {
+        require(retailers[_to].isValue == true);
+    }
+    
+    function addBatch(address _retailer , address _batchAddress) public
+    {
+        retailers[_retailer].batches.push(_batchAddress);
+        retailers[_retailer].batchesAccs[_batchAddress]= true;
+        bool batchAcc = retailers[_retailer].batchesAccs[_batchAddress];
+        batchAcc = true;
     }
 }

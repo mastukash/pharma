@@ -1,5 +1,7 @@
 pragma solidity ^0.4.24;
 import "./Owned.sol";
+import "./Batch.sol";
+import "./Retailer.sol";
 import "./DataBase.sol";
 
 contract Distributor is Owned {
@@ -69,7 +71,8 @@ contract Distributor is Owned {
     
     function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
     {
-        saleBatchToDistributorRequired(_from,  _to, _fromBatch, _amount);
+        saleBatchRequired(_from,  _to, _fromBatch, _amount);
+        require(distributors[_to].isValue == true);
 
         Batch fromBatch = Batch(_fromBatch);
         require(fromBatch.getSize() >= _amount);
@@ -85,16 +88,51 @@ contract Distributor is Owned {
         fromBatch.setSize(fromBatch.getSize() - _amount);
 
         address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
-        manufacturers[_to].batches.push(newBatch);
+        distributors[_to].batches.push(newBatch);
         fromBatch.addChildBatch(newBatch);
         return newBatch;
     }
     
-    function saleBatchToDistributorRequired(address _from, address _to,address _fromBatch,int _amount)
+    function saleBatchRequired(address _from, address _to,address _fromBatch,int _amount)
     {
         require(_amount>0);
         require(distributors[_from].isValue == true);
         require(distributors[_from].batchesAccs[_fromBatch] == true);
-        require(distributors[_to].isValue == true);
+        
+    }
+    
+    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    {
+        DataBase database = DataBase(DATABASE_CONTRACT);
+        Retailer retailer = Retailer(database.getRetailer());
+        
+        saleBatchRequired(_from, _fromBatch, _amount);
+        retailer.checkAddress(_to);
+
+        address newBatch = saleBatch(_to,_fromBatch,newNumberOfParty,newDateCreated,_amount);
+        retailer.addBatch(_to, newBatch);
+        
+        return newBatch;
+    }
+    
+    function saleBatch(address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) returns (address _newBatch)
+    {
+        Batch fromBatch = Batch(_fromBatch);
+        require(fromBatch.getSize() >= _amount);
+        int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
+        int endIndex = startIdnex+ _amount;
+        address[] tmpConcreteProducts;
+        address[] memory productsFromBatch = fromBatch.getConcreteProducts();
+        for(int i = startIdnex;i<endIndex;i++)
+        {
+            tmpConcreteProducts.push(productsFromBatch[(uint256)(i)]);
+        }
+        
+        fromBatch.setSize(fromBatch.getSize() - _amount);
+
+        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        fromBatch.addChildBatch(newBatch);
+        
+        return newBatch;
     }
 }
