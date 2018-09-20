@@ -48,22 +48,30 @@ contract DataBase is Owned {
     {
         return retailer;
     }
-
-    function saleFromManToDistr()public
+   
+    function saleFromManToDistr(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount)view  public returns (address _batchAddress)
     {
-
+        Manufacturer _manufacturer = Manufacturer(manufacturer);
+        address batchAddress = _manufacturer.saleBatchToDistributor(_from, _to, _fromBatch,newNumberOfParty, newDateCreated, _amount);
+        return batchAddress;
     }
-    function saleFromDistrToDistr()public
+    function saleFromDistrToDistr(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount)view  public returns (address _batchAddress)
     {
-
+        Distributor _distributor = Distributor(distributor);
+        address batchAddress = _distributor.saleBatchToDistributor(_from, _to, _fromBatch,newNumberOfParty, newDateCreated, _amount);
+        return batchAddress;
     }
-    function saleFromDistrToRet()public
+    function saleFromDistrToRet(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount)view  public returns (address _batchAddress)
     {
-
+        Distributor _distributor = Distributor(distributor);
+        address batchAddress = _distributor.saleBatchToRetailer(_from, _to, _fromBatch,newNumberOfParty, newDateCreated, _amount);
+        return batchAddress;
     }
-    function saleFromRetToRet()public
+    function saleFromRetToRet(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount)view  public returns (address _batchAddress)
     {
-
+        Retailer _retailer = Retailer(retailer);    
+        address batchAddress = _retailer.saleBatchToRetailer(_from, _to, _fromBatch,newNumberOfParty, newDateCreated, _amount);
+        return batchAddress;
     }
     function saleFromRetToUser()public
     {
@@ -75,7 +83,7 @@ contract DataBase is Owned {
     }
     function findHistoryProductByQR(bytes32 _QR)public
     {
-
+        
     }
     //коли де небудь створюється продукт, то записувати про нього (address) інформацію в БД
     function saveProductInfo(address _concreteProduct) public
@@ -85,4 +93,5 @@ contract DataBase is Owned {
         concreteProductsAccts[_concreteProduct] = true;
 
     }
+    // function createProduct
 }

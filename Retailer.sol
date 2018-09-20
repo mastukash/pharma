@@ -71,7 +71,7 @@ contract Retailer is Owned {
         batchAcc = true;
     }
 
-    function saleBatchToRetaler(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
     {
         saleBatchRequired(_from,  _to, _fromBatch, _amount);
         require(retailers[_to].isValue == true);
