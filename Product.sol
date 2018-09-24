@@ -4,17 +4,19 @@ contract Product
 {
     address DATABASE_CONTRACT;
 
-    uint256 price;
     string name;
-    string dateCreate;
+    string generic;
+    string form;
     
-    
-    constructor(address _DATABASE_CONTRACT, uint256 _price, string _name, string _dateCreate) public
+    constructor(address _DATABASE_CONTRACT, string _name, string _generic,  string _form) public
     {
         DATABASE_CONTRACT = _DATABASE_CONTRACT;
+        name = _name;
+        generic = _generic;
+        form = _form;
     }
-    function getDetails() view public returns(uint256 price, string name,  string dateCreate)
+    function getDetails() view public returns(string _name, string _generic,  string _form)
     {
-        return (price,name,dateCreate);
+        return (name,generic,form);
     }
 }

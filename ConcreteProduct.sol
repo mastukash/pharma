@@ -8,17 +8,16 @@ contract ConcreteProduct
     address saleAddress;
     
     bytes32 id;
-    bytes32 QR;
     
-    constructor(address _DATABASE_CONTRACT,address _lastBatch, bytes32 _id, bytes32 _qr) public
+    constructor(address _DATABASE_CONTRACT,address _lastBatch, bytes32 _id) public
     {
         DATABASE_CONTRACT = _DATABASE_CONTRACT;
         lastBatch = _lastBatch;
         id = _id;
-        QR = _qr;
+        //QR = _qr;
     }
-    function getInfo() view public returns(address _lastBatch,  bytes32 _id, bytes32 _QR)
+    function getInfo() view public returns(address _lastBatch,  bytes32 _id)
     {
-        return (lastBatch,id,QR);
+        return (lastBatch,id);
     }
 }

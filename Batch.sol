@@ -6,6 +6,7 @@ import "./ConcreteProduct.sol";
 contract Batch{
     address DATABASE_CONTRACT;
     address owner; //власник - це контракт який його створив
+    MyLibrary.ConsumerType ownerType;
     
     address[] concreteProducts;
     address product;
@@ -16,16 +17,16 @@ contract Batch{
     uint256 numberOfParty;
     string  details;
     string dateCreated;
-    int size; // sizeAvailable products
-    int capacity; //maxSize products
+    uint  size; // sizeAvailable products
+    uint  capacity; //maxSize products
 
-    constructor(address _DATABASE_CONTRACT, address _owner, address _product, address _parentBatch,  uint256 _numberOfParty, string _details,  string _dateCreated, int _size, address[] _concreteProducts) public
+    constructor(address _DATABASE_CONTRACT, address _owner, MyLibrary.ConsumerType _ownerType, address _product, address _parentBatch,  uint256 _numberOfParty, string _details,  string _dateCreated, uint  _size, address[] _concreteProducts) public
     {
         DATABASE_CONTRACT = _DATABASE_CONTRACT;
         owner = _owner;
         parentBatch = _parentBatch;
         product = _product;
-        
+        ownerType =_ownerType;
         numberOfParty = _numberOfParty;
         details = _details;
         dateCreated = _dateCreated;
@@ -43,11 +44,11 @@ contract Batch{
     {
         return parentBatch;
     }
-    function setSize(int _size) public
+    function setSize(uint  _size) public
     {
         size = _size;
     }
-    function getSize() view public returns(int _size)
+    function getSize() view public returns(uint  _size)
     {
         return size;
     }
@@ -63,7 +64,7 @@ contract Batch{
     {
         return childBatches;
     }
-    function getCapacity()view public returns(int _capacity)
+    function getCapacity()view public returns(uint  _capacity)
     {
         return capacity;
     }

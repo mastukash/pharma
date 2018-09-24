@@ -37,6 +37,7 @@ contract Distributor is Owned {
         distr.firstName = _firstName;
         distr.lastName = _lastName;
         distr.email = _email;
+        distr.isValue = true;
         
         distrAccts.push(_address);
     }
@@ -56,7 +57,7 @@ contract Distributor is Owned {
         return distributors[_distributor].batches;
     }
     
-    function checkAddress(address _to)
+    function checkAddress(address _to) public view
     {
         require(distributors[_to].isValue == true);
     }
@@ -65,35 +66,25 @@ contract Distributor is Owned {
     {
         distributors[_distributor].batches.push(_batchAddress);
         distributors[_distributor].batchesAccs[_batchAddress]= true;
-        bool batchAcc = distributors[_distributor].batchesAccs[_batchAddress];
-        batchAcc = true;
+        distributors[_distributor].batchesAccs[_batchAddress]=true;
+       
     }
     
-    function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
     {
-        saleBatchRequired(_from,  _to, _fromBatch, _amount);
-        require(distributors[_to].isValue == true);
-
-        Batch fromBatch = Batch(_fromBatch);
-        require(fromBatch.getSize() >= _amount);
-        int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
-        int endIndex = startIdnex+ _amount;
-        address[] tmpConcreteProducts;
-        address[] memory productsFromBatch = fromBatch.getConcreteProducts();
-        for(int i = startIdnex;i<endIndex;i++)
-        {
-            tmpConcreteProducts.push(productsFromBatch[(uint256)(i)]);
-        }
+         DataBase database = DataBase(DATABASE_CONTRACT);
+        Retailer retailer = Retailer(database.getRetailer());
         
-        fromBatch.setSize(fromBatch.getSize() - _amount);
+        saleBatchRequired(_from, _fromBatch, _amount);
+        retailer.checkAddress(_to);
 
-        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
-        distributors[_to].batches.push(newBatch);
-        fromBatch.addChildBatch(newBatch);
+        address newBatch = saleBatch(_fromBatch, newNumberOfParty,newDateCreated,_amount);
+        retailer.addBatch(_to, newBatch);
+        
         return newBatch;
     }
     
-    function saleBatchRequired(address _from, address _to,address _fromBatch,int _amount)
+    function saleBatchRequired(address _from,address _fromBatch,uint  _amount)public view
     {
         require(_amount>0);
         require(distributors[_from].isValue == true);
@@ -101,7 +92,7 @@ contract Distributor is Owned {
         
     }
     
-    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
+    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
     {
         DataBase database = DataBase(DATABASE_CONTRACT);
         Retailer retailer = Retailer(database.getRetailer());
@@ -109,28 +100,35 @@ contract Distributor is Owned {
         saleBatchRequired(_from, _fromBatch, _amount);
         retailer.checkAddress(_to);
 
-        address newBatch = saleBatch(_to,_fromBatch,newNumberOfParty,newDateCreated,_amount);
+        address newBatch = saleBatch(_fromBatch, newNumberOfParty,newDateCreated,_amount);
         retailer.addBatch(_to, newBatch);
         
         return newBatch;
     }
     
-    function saleBatch(address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) returns (address _newBatch)
+    function getProductsForSale (uint capacity , uint size , uint _amount, address[]productsFromBatch )private pure returns(address[] tmp)
     {
-        Batch fromBatch = Batch(_fromBatch);
-        require(fromBatch.getSize() >= _amount);
-        int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
-        int endIndex = startIdnex+ _amount;
-        address[] tmpConcreteProducts;
-        address[] memory productsFromBatch = fromBatch.getConcreteProducts();
-        for(int i = startIdnex;i<endIndex;i++)
+        uint  startIdnex = capacity - size;
+        uint  endIndex = startIdnex+ _amount;
+        address[] memory tmpConcreteProducts = new address[](_amount);
+        // address[] memory productsFromBatch = fromBatch.getConcreteProducts();
+        for(uint  i = startIdnex;i<endIndex;i++)
         {
-            tmpConcreteProducts.push(productsFromBatch[(uint256)(i)]);
+            tmpConcreteProducts[i-startIdnex] = productsFromBatch[i];
         }
+        return tmpConcreteProducts;
+    }
+    
+    function saleBatch( address _fromBatch, uint256 newNumberOfParty, string newDateCreated, uint  _amount)public returns (address _newBatch)
+    {
+       Batch fromBatch = Batch(_fromBatch);
+        require(fromBatch.getSize() >= _amount);
+       
+        address[] memory tmpConcreteProducts = getProductsForSale(fromBatch.getCapacity(),fromBatch.getSize(),_amount,fromBatch.getConcreteProducts());
         
         fromBatch.setSize(fromBatch.getSize() - _amount);
 
-        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Distributor, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
         fromBatch.addChildBatch(newBatch);
         
         return newBatch;
