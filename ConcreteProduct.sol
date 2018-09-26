@@ -5,7 +5,7 @@ contract ConcreteProduct
     address DATABASE_CONTRACT;
 
     address lastBatch; 
-    address saleAddress;
+    string saleDate;
     
     bytes32 id;
     
@@ -19,5 +19,9 @@ contract ConcreteProduct
     function getInfo() view public returns(address _lastBatch,  bytes32 _id)
     {
         return (lastBatch,id);
+    }
+    
+    function getLastBatch()public view returns(address _lastBatch){
+        return lastBatch;
     }
 }

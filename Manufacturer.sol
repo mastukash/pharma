@@ -61,17 +61,18 @@ contract Manufacturer is Owned {
         return manufacturerAccts.length;
     }
     
-    function createBatch(address _manufacturerAcct, address _product, uint256 _numberOfParty, string _details,  string _dateCreated, uint  _size, bytes32[] _ids)public returns(address _addressBatch) 
+    function createBatch(address _manufacturerAcct, address _product, string _numberOfParty, string _details,  string _dateCreated, uint  _size, bytes32[] _ids)public returns(address _addressBatch) 
     {
         require(_size>1);
         //TODO чи правильно???? -> перевірка чи _product !=null
         require(_product!=address(0));
         require(manufacturers[_manufacturerAcct].isValue == true);
-        
+        DataBase db = DataBase(DATABASE_CONTRACT);
         address[] memory _concreteProducts= new address[](_size);
         for(uint  i=0;i<_size;i++)
         {
             _concreteProducts[i] = new ConcreteProduct(DATABASE_CONTRACT, this, _ids[i]);
+            db.addConcrateProduct(_ids[i],_concreteProducts[i]);
         }
         
         address batch = new Batch(DATABASE_CONTRACT, _manufacturerAcct,MyLibrary.ConsumerType.Manufacturer ,  _product, address(0), _numberOfParty, _details,  _dateCreated, _size, _concreteProducts);
@@ -86,7 +87,7 @@ contract Manufacturer is Owned {
         return manufacturers[_manufacturer].batches;
     }
     
-    function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount)saleBatchRequired(_from,_fromBatch,_amount) public returns(address addressBatch) 
+    function saleBatchToDistributor(address _from, address _to, address _fromBatch,string newNumberOfParty, string newDateCreated, uint  _amount)saleBatchRequired(_from,_fromBatch,_amount) public returns(address addressBatch) 
     {
         DataBase database = DataBase(DATABASE_CONTRACT);
         Distributor distributor = Distributor(database.getDistributor());
@@ -110,7 +111,7 @@ contract Manufacturer is Owned {
         }
         return tmpConcreteProducts;
     }
-    function saleBatch(address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount)public  returns (address _newBatch)
+    function saleBatch(address _fromBatch,string newNumberOfParty, string newDateCreated, uint  _amount)public  returns (address _newBatch)
     {
         Batch fromBatch = Batch(_fromBatch);
         require(fromBatch.getSize() >= _amount);
@@ -120,7 +121,7 @@ contract Manufacturer is Owned {
         
         fromBatch.setSize(fromBatch.getSize() - _amount);
 
-        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Distributor, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Distributor, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getExpirationDate(),  newDateCreated, _amount, tmpConcreteProducts);
         fromBatch.addChildBatch(newBatch);
         
         return newBatch;

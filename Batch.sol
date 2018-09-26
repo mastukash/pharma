@@ -14,13 +14,13 @@ contract Batch{
     address parentBatch;
     address[] childBatches;
     
-    uint256 numberOfParty;
-    string  details;
+    string numberOfParty;
+    string  expirationDate;
     string dateCreated;
     uint  size; // sizeAvailable products
     uint  capacity; //maxSize products
 
-    constructor(address _DATABASE_CONTRACT, address _owner, MyLibrary.ConsumerType _ownerType, address _product, address _parentBatch,  uint256 _numberOfParty, string _details,  string _dateCreated, uint  _size, address[] _concreteProducts) public
+    constructor(address _DATABASE_CONTRACT, address _owner, MyLibrary.ConsumerType _ownerType, address _product, address _parentBatch,  string _numberOfParty, string _expirationDate,  string _dateCreated, uint  _size, address[] _concreteProducts) public
     {
         DATABASE_CONTRACT = _DATABASE_CONTRACT;
         owner = _owner;
@@ -28,7 +28,7 @@ contract Batch{
         product = _product;
         ownerType =_ownerType;
         numberOfParty = _numberOfParty;
-        details = _details;
+        expirationDate = _expirationDate;
         dateCreated = _dateCreated;
         size = capacity = _size;
         
@@ -36,9 +36,30 @@ contract Batch{
     }
     
     
-    function getInfo() view public returns(address _owner, address _parentBatch, address[] _childBatches, uint256 _numberOfParty, string _details, address[] _concreteProducts)
+    function getOwnerDetails()public view returns (string physicalAddress,string companyName,string firstName,string lastName,string email) 
     {
-        return (owner,parentBatch,childBatches,numberOfParty,details,concreteProducts);
+        DataBase db = DataBase(DATABASE_CONTRACT);
+         if(ownerType == MyLibrary.ConsumerType.Manufacturer)
+        {
+           return Manufacturer(db.getManufacturer()).getManufacturerDetails(owner);
+        }
+        else if(ownerType == MyLibrary.ConsumerType.Distributor){
+            return  Distributor(db.getDistributor()).getDistributor(owner);
+        }
+        else if(ownerType == MyLibrary.ConsumerType.Retailer){
+            return  Retailer(db.getRetailer()).getRetailer(owner);
+        }
+    }
+    
+    function getBatchInfo()public view returns (string _numberOfParty,  string _expirationDate, string _dateCreated){
+      
+        return (numberOfParty,  expirationDate, dateCreated);
+        
+    }
+    
+    function getInfo() view public returns(address _owner, address _parentBatch, address[] _childBatches, string _numberOfParty, string _expirationDate, address[] _concreteProducts)
+    {
+        return (owner,parentBatch,childBatches,numberOfParty,expirationDate,concreteProducts);
     }
     function getParentBatch() view public returns (address parentBatchAddress)
     {
@@ -56,9 +77,9 @@ contract Batch{
     {
         return product;
     }
-    function getDetails()view public returns(string _details)
+    function getExpirationDate()view public returns(string _expirationDate)
     {
-        return details;
+        return expirationDate;
     }
     function getChildBatches()view public returns(address[] _childBatches)
     {
@@ -76,4 +97,5 @@ contract Batch{
     {
         childBatches.push(_childBatch);
     }
+    //function getOwnerInfor()public view returns()
 }

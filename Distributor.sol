@@ -70,7 +70,7 @@ contract Distributor is Owned {
        
     }
     
-    function saleBatchToDistributor(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
+    function saleBatchToDistributor(address _from, address _to, address _fromBatch,string newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
     {
          DataBase database = DataBase(DATABASE_CONTRACT);
         Retailer retailer = Retailer(database.getRetailer());
@@ -92,7 +92,7 @@ contract Distributor is Owned {
         
     }
     
-    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
+    function saleBatchToRetailer(address _from, address _to, address _fromBatch,string newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
     {
         DataBase database = DataBase(DATABASE_CONTRACT);
         Retailer retailer = Retailer(database.getRetailer());
@@ -119,7 +119,7 @@ contract Distributor is Owned {
         return tmpConcreteProducts;
     }
     
-    function saleBatch( address _fromBatch, uint256 newNumberOfParty, string newDateCreated, uint  _amount)public returns (address _newBatch)
+    function saleBatch( address _fromBatch, string newNumberOfParty, string newDateCreated, uint  _amount)public returns (address _newBatch)
     {
        Batch fromBatch = Batch(_fromBatch);
         require(fromBatch.getSize() >= _amount);
@@ -128,7 +128,7 @@ contract Distributor is Owned {
         
         fromBatch.setSize(fromBatch.getSize() - _amount);
 
-        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Distributor, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Distributor, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getExpirationDate(),  newDateCreated, _amount, tmpConcreteProducts);
         fromBatch.addChildBatch(newBatch);
         
         return newBatch;

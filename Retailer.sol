@@ -90,7 +90,7 @@ contract Retailer is Owned {
         return tmpConcreteProducts;
     }
     
-    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
+    function saleBatchToRetailer(address _from, address _to, address _fromBatch,string newNumberOfParty, string newDateCreated, uint  _amount) public returns(address addressBatch) 
     {
          
         saleBatchRequired(_from, _fromBatch, _amount , _to);
@@ -99,7 +99,7 @@ contract Retailer is Owned {
            require(fromBatch.getSize() >= _amount);
         address[] memory tmpConcreteProducts =saleBatch(_fromBatch,_amount);
         
-        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Retailer, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
+        address newBatch = new Batch(DATABASE_CONTRACT, this,MyLibrary.ConsumerType.Retailer, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getExpirationDate(),  newDateCreated, _amount, tmpConcreteProducts);
         fromBatch.addChildBatch(newBatch);
         
         
