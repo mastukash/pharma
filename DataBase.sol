@@ -97,7 +97,7 @@ contract DataBase is Owned {
         return concreteProductsAccts[_itemId];
     }
 
-    function getBatchesCount(address batchAddress)public constant returns (uint)
+    function getBatchesCount(address batchAddress)private constant returns (uint)
     {
         Batch lastBatch = Batch(batchAddress);
         uint count =0;
@@ -110,7 +110,7 @@ contract DataBase is Owned {
         return count;
     }
 
-    function getBatchHistory(address _lastBatch)public view returns (address[])
+    function getBatchHistory(address _lastBatch)private view returns (address[])
     {
         Batch lastBatch = Batch(_lastBatch);
         uint  batchesCount = getBatchesCount(_lastBatch);
