@@ -130,6 +130,10 @@ contract Distributor is Owned {
         address newBatch = new Batch(DATABASE_CONTRACT, _to, _type, fromBatch.getProduct(), _fromBatch, fromBatch.getNumberOfParty(), fromBatch.getExpirationDate(),  fromBatch.getCreationDate(), tmpConcreteProducts.length, tmpConcreteProducts);
         fromBatch.addChildBatch(newBatch);
         
+         for(uint i=0; i< tmpConcreteProducts.length;i++){
+            ConcreteProduct(tmpConcreteProducts[i]).setLastBatch(newBatch);
+        }
+        
         return newBatch;
     }
     

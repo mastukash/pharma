@@ -71,13 +71,17 @@ contract Manufacturer is Owned {
         address[] memory _concreteProducts= new address[](_size);
         for(uint  i=0;i<_size;i++)
         {
-            _concreteProducts[i] = new ConcreteProduct(DATABASE_CONTRACT, this, _ids[i]);
+            _concreteProducts[i] = new ConcreteProduct(DATABASE_CONTRACT, address(0), _ids[i]);
             db.addConcrateProduct(_ids[i],_concreteProducts[i]);
         }
         
         address batch = new Batch(DATABASE_CONTRACT, _manufacturerAcct,MyLibrary.ConsumerType.Manufacturer ,  _product, address(0), _numberOfParty, _details,  _dateCreated, _size, _concreteProducts);
         manufacturers[_manufacturerAcct].batches.push(batch);
         manufacturers[_manufacturerAcct].batchesAccs[batch]=true;
+        for(i=0;i<_size;i++)
+        {
+            ConcreteProduct(_concreteProducts[i]).setLastBatch(batch);//.call("setLastBatch",batch);
+        }
         return batch;
     }
     
@@ -145,6 +149,10 @@ contract Manufacturer is Owned {
 
         address newBatch = new Batch(DATABASE_CONTRACT, _to, MyLibrary.ConsumerType.Distributor, fromBatch.getProduct(), _fromBatch, fromBatch.getNumberOfParty(), fromBatch.getExpirationDate(),  fromBatch.getCreationDate(), tmpConcreteProducts.length, tmpConcreteProducts);
         fromBatch.addChildBatch(newBatch);
+        
+        for(uint i=0; i< tmpConcreteProducts.length;i++){
+            ConcreteProduct(tmpConcreteProducts[i]).setLastBatch(newBatch);
+        }
         
         return newBatch;
     }

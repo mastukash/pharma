@@ -34,6 +34,12 @@ contract ConcreteProduct
         
     }
     
+    
+    function setLastBatch(address _lastBatch)public{
+        //require(lastBatch == address(0));
+        lastBatch = _lastBatch;
+    }
+    
     function getInfo() view public returns(address _lastBatch,  bytes32 _id)
     {
         return (lastBatch,id);
