@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 import "./Owned.sol";
 import "./Batch.sol";
 import "./DataBase.sol";
+import "./ConcreteProduct.sol";
 
 contract Retailer is Owned {
     address public DATABASE_CONTRACT;
@@ -58,7 +59,7 @@ contract Retailer is Owned {
         return retailers[_retailer].batches;
     }
     
-    function checkAddress(address _to)
+    function checkAddress(address _to)public view
     {
         require(retailers[_to].isValue == true);
     }
@@ -67,45 +68,30 @@ contract Retailer is Owned {
     {
         retailers[_retailer].batches.push(_batchAddress);
         retailers[_retailer].batchesAccs[_batchAddress]= true;
-        bool batchAcc = retailers[_retailer].batchesAccs[_batchAddress];
-        batchAcc = true;
+        retailers[_retailer].batchesAccs[_batchAddress]=true;
+      
     }
-
-    function saleBatchToRetailer(address _from, address _to, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public returns(address addressBatch) 
-    {
-        saleBatchRequired(_from,  _to, _fromBatch, _amount);
-        require(retailers[_to].isValue == true);
-
-        Batch fromBatch = Batch(_fromBatch);
-        require(fromBatch.getSize() >= _amount);
-        int startIdnex = fromBatch.getCapacity() - fromBatch.getSize();
-        int endIndex = startIdnex+ _amount;
-        address[] tmpConcreteProducts;
-        address[] memory productsFromBatch = fromBatch.getConcreteProducts();
-        for(int i = startIdnex;i<endIndex;i++)
-        {
-            tmpConcreteProducts.push(productsFromBatch[(uint256)(i)]);
-        }
+      function getRetailerInfo(address _address) view public returns (string _physicalAddress, string _companyName){
+        return (retailers[_address].physicalAddress, retailers[_address].companyName);
+    }
+    
+    function saleProductToUser (bytes32 _itemId , string saleDate)public {
+        DataBase db = DataBase(DATABASE_CONTRACT);
         
-        fromBatch.setSize(fromBatch.getSize() - _amount);
-
-        address newBatch = new Batch(DATABASE_CONTRACT, this, fromBatch.getProduct(), _fromBatch, newNumberOfParty, fromBatch.getDetails(),  newDateCreated, _amount, tmpConcreteProducts);
-        retailers[_to].batches.push(newBatch);
-        fromBatch.addChildBatch(newBatch);
-        return newBatch;
+        address  itemAddress = db.getItemAddress(_itemId);
+        
+        ConcreteProduct _item = ConcreteProduct(itemAddress);
+        _item.saleProduct(saleDate);
+        
     }
-    function saleBatchRequired(address _from, address _to,address _fromBatch,int _amount)
-    {
-        require(_amount>0);
-        require(retailers[_from].isValue == true);
-        require(retailers[_from].batchesAccs[_fromBatch] == true);
-    }
-
+    
+        
+    
     // чи шукати продукти по ід? чи продавати тільки 1 товар,
     // чи зразу продавати з партії пару продуктів???
     // якось записувати деталі продужу користувачу
-    function saleProductToUser(address _from, address _concreteProduct, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public 
-    {
+   // function saleProductToUser(address _from, address _concreteProduct, address _fromBatch,uint256 newNumberOfParty, string newDateCreated, int _amount) public 
+    //{
 
-    }
+   // }
 }

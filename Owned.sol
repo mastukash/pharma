@@ -16,3 +16,4 @@ contract Owned {
         owner = newOwner;
     }
 }
+
